@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom';
+import { RegisterUser } from '../../apicalls/users';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -16,10 +19,31 @@ function Register() {
     }));
   };
 
-  const handleSubmit = (event) => {
-      console.log("Submitttttt")
-      console.log(formData);
-      event.preventDefault();
+  const handleSubmit = async (event) => {
+
+    event.preventDefault();
+    const response = await RegisterUser({
+      fullName: formData.fullName,
+      email: formData.email,
+      password: formData.password
+    })
+
+    if (response.status) toast.success(response.message);
+    else {
+      toast.error(response.message, {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      })
+    }
+    // console.log("Button",formData)
+    console.log(response);
+
   };
 
   return (
@@ -90,7 +114,7 @@ function Register() {
               </div>
               <button
                 type="submit"
-                className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"           
+                className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
               >
                 Sign in
               </button>
@@ -98,12 +122,13 @@ function Register() {
                 Already have and account?{' '}
 
                 <Link to='/login'>Login</Link>
-                
+
               </p>
             </form>
           </div>
         </div>
       </div>
+      <ToastContainer />
     </section>
   );
 }
