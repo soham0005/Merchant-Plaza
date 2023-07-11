@@ -2,12 +2,12 @@ import Modal from 'antd/es/modal/Modal'
 import React, { useEffect, useRef } from 'react'
 import { Col, Form, Input, Row, Tabs, message } from 'antd'
 import Products from './Products'
-import {useDispatch, useSelector} from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import TextArea from 'antd/es/input/TextArea'
 import { setLoader } from '../../../redux/slices/loaderSlice';
-import { AddProduct } from '../../../apicalls/products'
+import { AddProduct, EditProduct } from '../../../apicalls/products'
 
-function ProductForm({ showProductForm, setShowProductForm,selectedProduct }) {
+function ProductForm({ showProductForm, setShowProductForm, selectedProduct, getData }) {
     const formRef = React.useRef(null);
     const dispatch = useDispatch();
     const user = useSelector(state => state.user);
@@ -17,24 +17,37 @@ function ProductForm({ showProductForm, setShowProductForm,selectedProduct }) {
             values.seller = user._id;
             values.status = "pending";
             dispatch(setLoader(true))
-            const response = await AddProduct(values);
+            let response = null;
+            if (selectedProduct) {
+                console.log("Selected Product ID:",selectedProduct._id);
+                response = await EditProduct(selectedProduct._id, values);
+                console.log("Response From Edit Products:", response);
+            }
+            else {
+
+                values.seller = user._id;
+                values.status = "pending";
+                
+                response = await AddProduct(values);
+                console.log("Response From Add Products:", response);
+            }
             dispatch(setLoader(false));
 
-            console.log("Response From Add Products:",response);
 
-            if(response.status){
+            if (response.status) {
                 message.success(response.message);
+                getData();
                 setShowProductForm(false);
 
             }
-            else{
+            else {
                 message.error(response.message);
             }
 
 
         } catch (error) {
             dispatch(setLoader(false));
-            message.error(error.message);
+            message.error("Something went Wrong while Updating");
         }
     }
     const additionalThings = [
@@ -63,8 +76,8 @@ function ProductForm({ showProductForm, setShowProductForm,selectedProduct }) {
         }
     ]
 
-    useEffect(()=>{
-        if(selectedProduct){
+    useEffect(() => {
+        if (selectedProduct) {
             formRef.current.setFieldsValue(selectedProduct);
         }
     })
@@ -81,9 +94,9 @@ function ProductForm({ showProductForm, setShowProductForm,selectedProduct }) {
             }}
         >
             <div>
-                <text className="xl text-primary">
-                {selectedProduct ? "Edit Product" : "Add Product"}
-                </text>
+                <h1 className="text-primary text-2xl text-center font-semibold uppercase">
+                    {selectedProduct ? "Edit Product" : "Add Product"}
+                </h1>
                 <Tabs defaultActiveKey='1'>
                     <Tabs.TabPane tab="General" key="1">
                         <Form layout='vertical' ref={formRef} onFinish={onFinish}>
@@ -125,7 +138,7 @@ function ProductForm({ showProductForm, setShowProductForm,selectedProduct }) {
                             <div className="flex gap-10">
 
                                 {additionalThings.map((item, index) => {
-                                    return <Form.Item label={item.label} name={item.name} key={index}>
+                                    return <Form.Item label={item.label} name={item.name} key={index} valuePropName='checked'>
                                         <Input type='checkbox' value={item.name} onChange={(e) => {
                                             formRef.current.setFieldsValue({
                                                 [item.name]: e.target.checked,
@@ -140,15 +153,13 @@ function ProductForm({ showProductForm, setShowProductForm,selectedProduct }) {
                         </Form>
                     </Tabs.TabPane>
 
-                    {/**  <Tabs.TabPane tab="Images" key="2">
-                    //     Images
-                    </Tabs.TabPane>*/}
+                    <Tabs.TabPane tab="Images" key="2">
+                        Images
+                    </Tabs.TabPane>
 
 
                 </Tabs>
             </div>
-
-
         </Modal>
     )
 }
