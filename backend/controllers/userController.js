@@ -41,8 +41,9 @@ const handleNewUser = async (req, res) => {
 
 const handleLogin = async (req, res) => {
     try {
-        const { email, password, fullName } = req.body
+        const { email, password } = req.body
         const user = await User.findOne({ email });
+        console.log("user Found:",user);
 
         if (!user) {
             throw new Error("User not Found");
@@ -53,15 +54,13 @@ const handleLogin = async (req, res) => {
 
 
 
-        const token = jwt.sign({ userId: user._id }, process.env.TOKEN_SECRET);
+        const token = jwt.sign({ userId: user._id }, "merchantPlaza");
+        console.log("token",token);
 
-
-
-
-        res.send({
+        res.status(200).json({
             status: true,
-            message: "Login Successfull",
-            token: token
+            message: "Login Success",
+            token:token
         })
 
 

@@ -1,10 +1,19 @@
 import React from 'react'
 import { useState } from 'react'
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { LoginUser } from '../../apicalls/users';
+import { ToastContainer, toast } from 'react-toastify';
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { setLoader } from '../../redux/slices/loaderSlice';
+
 
 
 function Login() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -18,22 +27,55 @@ function Login() {
     }));
   };
 
-  const handleSubmit = (event) =>{
+  const handleSubmit = async (event) => {
     event.preventDefault();
     console.log(formData);
+
+    try {
+
+      dispatch(setLoader(true));
+      const response = await LoginUser({
+        email: formData.email,
+        password: formData.password
+      });
+      dispatch(setLoader(false));
+      console.log("Response in Login.jsx:", response);
+
+      if (response.status) {
+        console.log(response);
+        toast.success("Meow",response.message);
+        localStorage.setItem('token', response.token);
+        window.location.href = "/";
+
+      }
+      else {
+        dispatch(setLoader(false));
+        toast.error(response.message);
+      }
+
+    } catch (error) {
+      toast.error(error.message);
+    }
   }
+
+
+  useEffect(()=>{
+    if(localStorage.getItem('token')){
+      navigate('/');
+    }
+  },[]);
   return (
     <section className="bg-gray-50 dark:bg-gray-900">
-  <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-      <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+      <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
+        <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
           <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-              <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-                  Sign in to your account
-              </h1>
+            <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+              Sign in to your account
+            </h1>
 
-              
-              <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
-          
+
+            <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
+
               <div>
                 <label
                   htmlFor="email"
@@ -73,7 +115,7 @@ function Login() {
               </div>
               <button
                 type="submit"
-                className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"           
+                className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
               >
                 Login
               </button>
@@ -81,13 +123,15 @@ function Login() {
                 Don’t have an account yet?{' '}
 
                 <Link to='/register'>Sign up</Link>
-                
+
               </p>
             </form>
           </div>
+        </div>
       </div>
-  </div>
-</section>
+      <ToastContainer />
+
+    </section>
   )
 }
 

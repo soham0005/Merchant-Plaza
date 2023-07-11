@@ -1,10 +1,16 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { RegisterUser } from '../../apicalls/users';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { setLoader } from '../../redux/slices/loaderSlice';
+
 
 function Register() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -22,29 +28,42 @@ function Register() {
   const handleSubmit = async (event) => {
 
     event.preventDefault();
-    const response = await RegisterUser({
-      fullName: formData.fullName,
-      email: formData.email,
-      password: formData.password
-    })
-
-    if (response.status) toast.success(response.message);
-    else {
-      toast.error(response.message, {
-        position: "top-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
+    try {
+      dispatch(setLoader(true));
+      const response = await RegisterUser({
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password
       })
+      navigate('/login');
+      dispatch(setLoader(false));
+
+      if (response.status) toast.success(response.message);
+      else {
+        toast.error(response.message, {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        })
+      }
+    } catch (error) {
+      dispatch(setLoader(false));
+      throw new Error(error.message);
     }
-    // console.log("Button",formData)
-    console.log(response);
+
 
   };
+  useEffect(()=>{
+    if(localStorage.getItem('token')){
+      navigate('/');
+    }
+  },[]);
+
 
   return (
     <section className="bg-gray-50 dark:bg-gray-900">
