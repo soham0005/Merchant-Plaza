@@ -1,7 +1,7 @@
 import { Button, Table, message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import ProductForm from './ProductForm';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setLoader } from '../../../redux/slices/loaderSlice';
 import { DeleteProduct, GetProducts } from '../../../apicalls/products';
 import moment from 'moment'
@@ -10,6 +10,7 @@ function Products() {
     const [showProductForm,setShowProductForm] = useState(false);
     const [selectedProduct,setSelectedProduct] = useState(null);
     const [products,setProducts] = useState([]);
+    const {user} = useSelector((state)=> state.user);
     const dispatch = useDispatch();
 
     const deleteProduct = async(id)=>{
@@ -39,7 +40,9 @@ function Products() {
     const getData = async()=>{
       try {
         dispatch(setLoader(true));
-        const response = await GetProducts();
+        const response = await GetProducts({
+          seller:user._id
+        });
         dispatch(setLoader(false));
         console.log("Products: ",response.message);
         if(response?.status){

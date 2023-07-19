@@ -1,14 +1,16 @@
 import Modal from 'antd/es/modal/Modal'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Col, Form, Input, Row, Tabs, message } from 'antd'
 import Products from './Products'
 import { useDispatch, useSelector } from 'react-redux'
 import TextArea from 'antd/es/input/TextArea'
 import { setLoader } from '../../../redux/slices/loaderSlice';
 import { AddProduct, EditProduct } from '../../../apicalls/products'
+import Images from './Images'
 
 function ProductForm({ showProductForm, setShowProductForm, selectedProduct, getData }) {
     const formRef = React.useRef(null);
+    const [selectedTab = "1", setSelectedTab] = React.useState("1");
     const dispatch = useDispatch();
     const user = useSelector(state => state.user);
     const onFinish = async (values) => {
@@ -19,7 +21,7 @@ function ProductForm({ showProductForm, setShowProductForm, selectedProduct, get
             dispatch(setLoader(true))
             let response = null;
             if (selectedProduct) {
-                console.log("Selected Product ID:",selectedProduct._id);
+                console.log("Selected Product ID:", selectedProduct._id);
                 response = await EditProduct(selectedProduct._id, values);
                 console.log("Response From Edit Products:", response);
             }
@@ -27,7 +29,7 @@ function ProductForm({ showProductForm, setShowProductForm, selectedProduct, get
 
                 values.seller = user._id;
                 values.status = "pending";
-                
+
                 response = await AddProduct(values);
                 console.log("Response From Add Products:", response);
             }
@@ -92,12 +94,14 @@ function ProductForm({ showProductForm, setShowProductForm, selectedProduct, get
             onOk={() => {
                 formRef.current.submit();
             }}
+            {...(selectedTab === "2" && {footer:false})}
         >
             <div>
                 <h1 className="text-primary text-2xl text-center font-semibold uppercase">
                     {selectedProduct ? "Edit Product" : "Add Product"}
                 </h1>
-                <Tabs defaultActiveKey='1'>
+                <Tabs defaultActiveKey='1' activeKey={selectedTab} onChange={(key) => setSelectedTab(key)}>
+
                     <Tabs.TabPane tab="General" key="1">
                         <Form layout='vertical' ref={formRef} onFinish={onFinish}>
 
@@ -138,23 +142,22 @@ function ProductForm({ showProductForm, setShowProductForm, selectedProduct, get
                             <div className="flex gap-10">
 
                                 {additionalThings.map((item, index) => {
-                                    return <Form.Item label={item.label} name={item.name} key={index} valuePropName='checked'>
+                                    return (<Form.Item label={item.label} name={item.name} key={index} valuePropName='checked'>
                                         <Input type='checkbox' value={item.name} onChange={(e) => {
                                             formRef.current.setFieldsValue({
                                                 [item.name]: e.target.checked,
                                             });
                                         }}
-                                            checked={formRef.current?.getFieldValue(item.name)}
-                                        />
-                                    </Form.Item>
+                                            checked={formRef.current?.getFieldValue(item.name)} />
+                                    </Form.Item>)
                                 })}
 
                             </div>
                         </Form>
                     </Tabs.TabPane>
 
-                    <Tabs.TabPane tab="Images" key="2">
-                        Images
+                    <Tabs.TabPane tab="Images" key="2" disabled={!selectedProduct}>
+                        <Images selectedProduct={selectedProduct} getData={getData} setShowProductForm={setShowProductForm} />
                     </Tabs.TabPane>
 
 

@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import {axiosInstance} from './axiosInstance';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -13,9 +14,9 @@ export const AddProduct = async(payload)=>{
     }
 } 
 
-export const GetProducts = async()=>{
+export const GetProducts = async(filters)=>{
     try {
-        const response = await axiosInstance.get('/api/product/get-products')
+        const response = await axiosInstance.post('/api/product/get-products',filters);
         return response.data;
     } catch (error) {
         return error.message
@@ -41,6 +42,20 @@ export const DeleteProduct = async(id) =>{
         console.log("Delete APi Called :",response);
         return response.data;
     } catch (error) {
+        return error.message;
+    }
+}
+
+export const UploadProductImage = async(payload) =>{
+    try {
+        // console.log("Before Upload HIt")
+        console.log("Payload:",payload)
+        const response = await axiosInstance.post("/api/product/upload-image-to-product",payload);
+        console.log("Response after Hit",response.data);
+        
+        return response.data;
+    } catch (error) {
+        console.log(error.message);
         return error.message;
     }
 }
